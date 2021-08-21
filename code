@@ -1,0 +1,79 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+import os, sys
+from sklearn.model_selection import train_test_split
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Activation
+from tensorflow.keras.losses import BinaryCrossentropy
+from tensorflow.keras.callbacks import EarlyStopping
+from PIL import Image
+
+img = np.asarray(Image.open('#Directory Goes Here'))
+
+#the value of N can be adjusted
+N=5
+sum=0
+avg=0
+Q=np.zeros((len(img[:,1,1]),len(img[1,:,1])))
+for i in range(0, len(img[:,1,1])-a,a):
+  for j in range(0,len(img[1,:,1])-a,a):
+    for k in range(N):
+      for p in range(N):
+        sum=sum+img[i+k,j+p,1]
+    avg=sum/(N**2)
+    for k in range(N):
+      for p in range(N):
+        Q[i+k,j+p]=avg
+    avg=0
+    sum=0
+    
+    color=[]
+coord=[]
+for i in range(len(img[:,1,1])):
+  for j in range(len(img[1,:,1])):
+    coord.append([i,j])
+    color.append(Q[i,j])
+color=np.array(color)
+coord=np.array(coord)
+color=color/255
+
+X_train, X_val, y_train, y_val = train_test_split(coord,color,test_size=0.1,random_state=4)
+
+def decision_boundary():
+  xl, xr, dx = 0,230, 0.2
+  yl, yr, dy = 0,230, 0.2
+  u = np.arange(xl,xr,dx)
+  v = np.arange(yl,yr,dy)
+  u_r = np.ones((len(v),1))*u.reshape(1,len(u))
+  v_r = v.reshape(len(v),1)*np.ones((1,len(u)))
+  u_r = u_r.reshape(-1)
+  v_r = v_r.reshape(-1)
+  p_grid = np.column_stack((v_r,u_r))
+  f_grid = model.predict(p_grid)
+  f_grid = f_grid.reshape((len(v),len(u)))
+  plt.contour(v,u,f_grid,levels=[0.5])
+  return
+
+bce = BinaryCrossentropy(from_logits=False)
+model = 0 
+model = Sequential()
+model.add(Dense(64, activation='relu'))
+model.add(Dense(16, activation='relu'))
+model.add(Dense(4, activation='relu'))
+model.add(Dense(1, activation='sigmoid'))
+model.compile(loss='binary_crossentropy',optimizer='adam')
+model.fit(X_train, y_train, epochs=300,verbose=0)
+J_list = model.history.history['loss']
+plt.plot(J_list)
+
+y_val_hat = model.predict(X_val)
+sns.scatterplot(coord[:,1],coord[:,0],hue=color)
+decision_boundary()
+plt.xlabel('x',fontsize=20)
+plt.ylabel('y',fontsize=20)
+
+print('Val error =',bce(y_val.reshape(-1,1), y_val_hat).numpy())
+y_train_hat = model.predict(X_train)
+print('Train error =',bce(y_train.reshape(-1,1), y_train_hat).numpy())
