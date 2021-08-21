@@ -29,7 +29,7 @@ for i in range(0, len(img[:,1,1])-a,a):
     avg=0
     sum=0
     
-    color=[]
+color=[]
 coord=[]
 for i in range(len(img[:,1,1])):
   for j in range(len(img[1,:,1])):
@@ -68,12 +68,12 @@ model.fit(X_train, y_train, epochs=300,verbose=0)
 J_list = model.history.history['loss']
 plt.plot(J_list)
 
-y_val_hat = model.predict(X_val)
 sns.scatterplot(coord[:,1],coord[:,0],hue=color)
 decision_boundary()
 plt.xlabel('x',fontsize=20)
 plt.ylabel('y',fontsize=20)
 
+y_val_hat = model.predict(X_val)
 print('Val error =',bce(y_val.reshape(-1,1), y_val_hat).numpy())
 y_train_hat = model.predict(X_train)
 print('Train error =',bce(y_train.reshape(-1,1), y_train_hat).numpy())
